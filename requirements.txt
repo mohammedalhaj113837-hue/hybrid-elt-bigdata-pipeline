@@ -1,0 +1,8 @@
+pyspark==4.2.0
+pymongo
+pandas<3.0
+fastapi
+uvicorn
+apscheduler
+pydantic
+pytest

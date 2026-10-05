@@ -1,0 +1,22 @@
+{
+  "project": "midterm-data-pipeline2",
+  "pipeline": "Million-Row ELT Idempotent Upsert Pipeline",
+  "input_file": "million_sample.csv",
+  "engine": "PySpark",
+  "spark_master": "spark://172.22.144.1:7077",
+  "raw_records": 1000000,
+  "processed_records": 1000000,
+  "valid_records": 918742,
+  "corrected_records": 918742,
+  "quarantine_records": 81258,
+  "quality_rules": 9,
+  "elapsed_seconds": 215.946,
+  "throughput_records_per_second": 4630.78,
+  "worker_cores": 8,
+  "worker_memory": "30.9 GiB",
+  "count_check": "PASSED",
+  "validated_upsert": "PASSED",
+  "quarantine_upsert": "PASSED",
+  "idempotency": "PASSED",
+  "status": "SUCCESS"
+}
