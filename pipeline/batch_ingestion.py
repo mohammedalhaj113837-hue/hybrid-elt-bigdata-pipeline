@@ -15,12 +15,14 @@ from config.settings import (
 )
 
 
+from uuid import uuid4
+
 DEFAULT_BATCH_SIZE = 1000
 
 
 def load_csv_to_raw(
     file_path: str,
-    id_run: str,
+    id_run: str = None,
     batch_size: int = DEFAULT_BATCH_SIZE,
 ) -> dict:
     """
@@ -28,6 +30,8 @@ def load_csv_to_raw(
 
     No cleaning or filtering is performed here.
     """
+    if not id_run:
+        id_run = str(uuid4())
 
     input_path = Path(file_path)
 
@@ -177,4 +181,4 @@ if __name__ == "__main__":
     from uuid import uuid4
     sample_file = PROJECT_ROOT / "data" / "small_sample.csv"
     if sample_file.exists():
-        load_csv_to_raw(str(sample_file), id_run=str(uuid4()))
+        load_csv_to_raw(str(sample_file), id_run=str(uuid4()))

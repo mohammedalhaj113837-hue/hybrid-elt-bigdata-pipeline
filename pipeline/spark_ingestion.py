@@ -22,7 +22,7 @@ from pyspark.sql import SparkSession
 # SPARK CONFIGURATION
 # ============================================================
 
-SPARK_MASTER = "spark://172.20.240.1:7077"
+from config.settings import SPARK_MASTER
 
 
 # ============================================================

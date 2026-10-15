@@ -9,7 +9,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from pymongo import MongoClient
 from config.settings import MONGO_URI, MONGO_DATABASE, VALIDATED_COLLECTION, QUARANTINE_COLLECTION
-from src.materialized_views import refresh_all_materialized_views
+from pipeline.materialized_views import refresh_all_materialized_views
 
 JOBS_LOG_COLLECTION = "job_logs"
 

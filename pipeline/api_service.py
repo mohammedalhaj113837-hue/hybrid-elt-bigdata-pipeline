@@ -13,7 +13,7 @@ from typing import Optional, Dict, Any
 from pymongo import MongoClient
 from config.settings import MONGO_URI, MONGO_DATABASE
 
-from src.queries_indexes import (
+from pipeline.queries_and_indexes import (
     create_indexes,
     get_existing_indexes,
     compare_query_explain_stats,
@@ -23,11 +23,11 @@ from src.queries_indexes import (
     query_orders_by_email_or_phone,
     query_high_value_orders
 )
-from src.aggregations import run_report, REPORTS_REGISTRY
-from src.materialized_views import refresh_all_materialized_views, get_materialized_view_data
-from src.scheduled_jobs import run_job_by_name, get_job_logs, JOBS_REGISTRY
-from src.file_router import choose_engine
-from src.batch_loader import load_csv_to_raw
+from pipeline.aggregation_reports import run_report, REPORTS_REGISTRY
+from pipeline.materialized_views import refresh_all_materialized_views, get_materialized_view_data
+from pipeline.job_scheduler import run_job_by_name, get_job_logs, JOBS_REGISTRY
+from pipeline.file_router import choose_engine
+from pipeline.batch_ingestion import load_csv_to_raw
 
 
 app = FastAPI(
@@ -91,7 +91,7 @@ def ingest_data(request: Optional[IngestRequest] = None):
         if engine == "python_batch":
             res = load_csv_to_raw(file_path=str(target_file))
         else:
-            from src.elt_million_pipeline import run_million_elt_pipeline
+            from pipeline.million_row_pipeline import run_million_elt_pipeline
             res = run_million_elt_pipeline()
             
         return {

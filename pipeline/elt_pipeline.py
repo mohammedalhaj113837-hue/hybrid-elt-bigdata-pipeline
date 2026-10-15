@@ -1,6 +1,12 @@
 from pathlib import Path
 import sys
 
+# Reconfigure stdout for Windows console UTF-8 support
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
 # ============================================================
 # PROJECT PATH
@@ -35,6 +41,7 @@ from config.settings import (
     RAW_COLLECTION,
     VALIDATED_COLLECTION,
     QUARANTINE_COLLECTION,
+    SPARK_MASTER,
 )
 
 
@@ -42,7 +49,7 @@ from config.settings import (
 # QUALITY RULES
 # ============================================================
 
-from quality_rules import apply_all_quality_rules
+from pipeline.data_quality import apply_all_quality_rules
 
 
 # ============================================================
@@ -54,6 +61,7 @@ def create_spark_session():
     spark = (
         SparkSession.builder
         .appName("MidtermELTUpsertPipeline")
+        .master(SPARK_MASTER)
         .config(
             "spark.jars.packages",
             ",".join([
@@ -268,23 +276,26 @@ def show_correction_examples(df):
     print("CORRECTION EXAMPLES")
     print("=" * 70)
 
-    (
-        df
-        .filter(
-            F.size(
-                F.col("corrections")
-            ) > 0
+    try:
+        (
+            df
+            .filter(
+                F.size(
+                    F.col("corrections")
+                ) > 0
+            )
+            .select(
+                "order_id",
+                "quality_status",
+                "corrections"
+            )
+            .show(
+                10,
+                truncate=False
+            )
         )
-        .select(
-            "order_id",
-            "quality_status",
-            "corrections"
-        )
-        .show(
-            10,
-            truncate=False
-        )
-    )
+    except Exception as e:
+        print(f"(Correction samples displayed in Mongo / JSON due to console encoding: {e})")
 
 
 # ============================================================
@@ -297,24 +308,27 @@ def show_quarantine_examples(df):
     print("QUARANTINE EXAMPLES")
     print("=" * 70)
 
-    (
-        df
-        .filter(
-            F.col(
-                "quality_status"
-            ) == "quarantine"
+    try:
+        (
+            df
+            .filter(
+                F.col(
+                    "quality_status"
+                ) == "quarantine"
+            )
+            .select(
+                "order_id",
+                "customer_id",
+                "quality_status",
+                "quarantine_reasons"
+            )
+            .show(
+                10,
+                truncate=False
+            )
         )
-        .select(
-            "order_id",
-            "customer_id",
-            "quality_status",
-            "quarantine_reasons"
-        )
-        .show(
-            10,
-            truncate=False
-        )
-    )
+    except Exception as e:
+        print(f"(Quarantine samples displayed in Mongo / JSON due to console encoding: {e})")
 
 
 # ============================================================

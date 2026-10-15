@@ -5,7 +5,7 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.aggregations import (
+from pipeline.aggregation_reports import (
     get_db,
     get_sales_by_city,
     get_top_products,

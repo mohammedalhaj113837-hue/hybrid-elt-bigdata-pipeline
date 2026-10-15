@@ -682,13 +682,13 @@ http://localhost:8000/docs
 ## 22.1 استنساخ المشروع
 
 ``` bash
-git clone <YOUR-REPOSITORY-URL>
-cd <PROJECT-DIRECTORY>
+git clone https://github.com/mohammedalhaj113837-hue/hybrid-elt-bigdata-pipeline
+cd hybrid-elt-bigdata-pipeline
 ```
 
 ------------------------------------------------------------------------
 
-## 22.2 إنشاء Virtual Environment
+## 22.2 إنشاء Virtual Environment وتفعيله
 
 ### Windows PowerShell
 
@@ -712,6 +712,8 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+> **ملاحظة:** تم تضمين مكتبة `httpx` ومكتبات الاختبار في `requirements.txt` لضمان عمل كافة اختبارات `FastAPI TestClient` و`pytest` من بيئة نظيفة مباشرة.
+
 ------------------------------------------------------------------------
 
 # 23. إعداد MongoDB
@@ -728,111 +730,113 @@ mongodb://localhost:27017
 midterm_data_pipeline2
 ```
 
-إذا كان MongoDB يعمل بإعداد مختلف، يجب تعديل إعدادات الاتصال وفق البيئة
-المستخدمة.
+يمكن تخصيص الإعدادات عبر ملف `.env` (مبني على `.env.example`).
 
 ------------------------------------------------------------------------
 
-# 24. تهيئة MongoDB
+# 24. تهيئة MongoDB وإنشاء الفهارس
 
-يمكن تشغيل:
+لتجهيز المجموعات وإنشاء الفهرس الفريد `order_id` الفريد لضمان منع التكرار:
 
 ``` bash
 python -m pipeline.mongodb_setup
 ```
 
-لتجهيز قاعدة البيانات والـIndexes المطلوبة.
-
 ------------------------------------------------------------------------
 
-# 25. تشغيل المشروع
+# 25. تشغيل المشروع خطوة بخطوة
 
-لتشغيل الـworkflow الرئيسي:
+### 25.1 توليد بيانات العينة (إذا لم تكن متوفرة)
+
+الملف `data/small_sample.csv` متوفر وجاهز في المستودع، ويمكن إعادة توليده في أي وقت عبر:
+
+``` bash
+python -m pipeline.generate_sample_dataset
+```
+
+### 25.2 تشغيل خط المعالجة المتكامل (المراحل 1 - 7)
+
+لتشغيل دورة المعالجة الكاملة مع فحص Idempotency والتقارير والـ Materialized Views دون حجز الطرفية:
+
+``` bash
+python -m pipeline.run_pipeline --no-api
+```
+
+لتشغيل خط المعالجة متبوعاً بتشغيل خادم الـ API تلقائياً:
 
 ``` bash
 python -m pipeline.run_pipeline
 ```
 
-ويقوم النظام بتنفيذ المراحل الأساسية:
+ويقوم النظام بتنفيذ المراحل الأساسية تباعاً:
 
 ``` text
-1. File Routing + Raw Ingestion
+1. File Routing + Raw Ingestion (orders_raw)
         ↓
-2. ELT Cleaning + Quality Validation
+2. ELT Cleaning + Quality Validation (orders_validated & orders_quarantine)
         ↓
-3. Idempotency Verification
+3. Idempotency & Upsert Verification (No Duplicates)
         ↓
-4. Index Creation + Explain Analysis
+4. Index Creation + Explain Analysis (3 Indexes & Before/After Stats)
         ↓
-5. Aggregation Reports
+5. Aggregation Reports (5 Comprehensive Business Reports)
         ↓
-6. Materialized View Refresh
+6. Materialized View Incremental Refresh
         ↓
-7. Scheduled Jobs + Audit Logs
+7. Scheduled Jobs & Audit Execution Logs (job_logs)
         ↓
-8. FastAPI
+8. FastAPI Unified Service
 ```
 
 ------------------------------------------------------------------------
 
 # 26. تشغيل Pipeline المليون سجل
 
-يمكن إنشاء بيانات الاختبار عند الحاجة:
+يمكن إنشاء بيانات الاختبار الموسعة (1,000,000 سجل) عند الحاجة:
 
 ``` bash
 python -m pipeline.generate_million_dataset
 ```
 
-ثم تشغيل Pipeline الخاص بالمليون سجل:
+ثم تشغيل Pipeline المليون سجل باستخدام PySpark:
 
 ``` bash
 python -m pipeline.million_row_pipeline
 ```
 
-يستخدم هذا الـPipeline PySpark لمعالجة البيانات ثم تنفيذ Bulk Upsert إلى
-MongoDB.
-
 ------------------------------------------------------------------------
 
-# 27. تشغيل FastAPI بشكل مستقل
+# 27. تشغيل واجهة الـ API بشكل مستقل
 
 ``` bash
 uvicorn pipeline.api_service:app --host 0.0.0.0 --port 8000
 ```
 
-بعد ذلك:
+بعد التشغيل، يمكن الوصول إلى التوثيق التفاعلي وفحص صحة النظام عبر:
 
 ``` text
-http://localhost:8000/docs
-```
-
-ولفحص حالة النظام:
-
-``` text
-GET /health
+Swagger UI : http://localhost:8000/docs
+Health Check: http://localhost:8000/health
 ```
 
 ------------------------------------------------------------------------
 
-# 28. الاختبارات
+# 28. تشغيل الاختبارات الآلية (Pytest)
 
-يحتوي المشروع على اختبارات باستخدام Pytest تغطي:
-
--   Aggregations.
--   API.
--   Data Classification.
--   Cleaning Rules.
--   Materialized Views.
--   Queries and Indexes.
--   Scheduled Jobs.
-
-لتشغيل الاختبارات:
+يحتوي المشروع على **26 اختباراً آلياً** شاملاً يغطي كافة المكونات:
 
 ``` bash
 pytest -v
 ```
 
-------------------------------------------------------------------------
+تشمل الاختبارات:
+- `test_aggregation_reports.py`: اختبار كافة تقارير التجميع الـ 5 وصحة البيانات.
+- `test_api_service.py`: اختبار صحة الخادم والـ Ingestion والفهارس والاستعلامات والـ MVs والمهام المجدولة.
+- `test_data_classification.py`: التحقق من سلامة تصنيف Validated و Quarantine وفهرس Idempotency.
+- `test_data_quality.py`: التحقق من قواعد التنظيف، الأرقام العربية، الهواتف، والبريد الإلكتروني.
+- `test_job_scheduler.py`: التحقق من تنفيذ وتسجيل المهام المجدولة في MongoDB.
+- `test_materialized_views.py`: التحقق من التحديث الكامل والتدريجي واسترجاع البيانات.
+- `test_queries_and_indexes.py`: التحقق من الفهارس الـ 3 (بما فيها Compound Index) ومقارنة Explain Execution Stats.
 
 # 29. نتائج المشروع والأدلة
 

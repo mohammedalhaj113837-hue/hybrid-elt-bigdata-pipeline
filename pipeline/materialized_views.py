@@ -153,7 +153,7 @@ def refresh_top_products_summary(db, incremental=True):
     mv_coll = db[MV_TOP_PRODUCTS]
     last_wm = get_last_watermark(db, MV_TOP_PRODUCTS) if incremental else 0.0
 
-    from src.aggregations import get_top_products
+    from pipeline.aggregation_reports import get_top_products
     products = get_top_products(db, limit=50)
 
     if not products:

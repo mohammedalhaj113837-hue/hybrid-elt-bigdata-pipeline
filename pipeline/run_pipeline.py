@@ -15,12 +15,12 @@ sys.path.insert(0, str(PROJECT_ROOT))
 # PROJECT MODULES (MIDTERM + FINAL)
 # ============================================================
 
-from src.file_router import choose_engine
-from src.batch_loader import load_csv_to_raw
-from src.queries_indexes import create_indexes, compare_query_explain_stats, get_db
-from src.aggregations import run_report, REPORTS_REGISTRY
-from src.materialized_views import refresh_all_materialized_views, get_materialized_view_data
-from src.scheduled_jobs import run_refresh_mv_job, run_periodic_audit_job, get_job_logs
+from pipeline.file_router import choose_engine
+from pipeline.batch_ingestion import load_csv_to_raw
+from pipeline.queries_and_indexes import create_indexes, compare_query_explain_stats, get_db
+from pipeline.aggregation_reports import run_report, REPORTS_REGISTRY
+from pipeline.materialized_views import refresh_all_materialized_views, get_materialized_view_data
+from pipeline.job_scheduler import run_refresh_mv_job, run_periodic_audit_job, get_job_logs
 
 
 def step_1_router_and_raw_ingestion(data_file_name="small_sample.csv"):
@@ -62,7 +62,7 @@ def step_2_elt_cleaning_and_quarantine():
     print("=" * 70)
     
     try:
-        from src.elt_pipeline import run_pipeline
+        from pipeline.elt_pipeline import run_pipeline
         run_pipeline()
     except Exception as e:
         print(f"Executing Python ELT cleaning fallback: {e}")
@@ -178,6 +178,13 @@ def step_8_start_fastapi_server():
     """
     Final Phase 5: Start FastAPI Unified API Server with Swagger Documentation.
     """
+    if "--no-api" in sys.argv or "--skip-api" in sys.argv:
+        print("\n" + "=" * 70)
+        print("STEP 8: FASTAPI SERVER SKIPPED (--no-api flag supplied)")
+        print("To start API server manually: uvicorn pipeline.api_service:app --host 0.0.0.0 --port 8000")
+        print("=" * 70)
+        return
+
     print("\n" + "=" * 70)
     print("STEP 8: STARTING FASTAPI UNIFIED API SERVER (PHASE 5)")
     print("=" * 70)
@@ -186,7 +193,7 @@ def step_8_start_fastapi_server():
     print("=" * 70)
     
     import uvicorn
-    from src.api import app
+    from pipeline.api_service import app
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
 

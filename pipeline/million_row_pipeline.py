@@ -39,20 +39,14 @@ from config.settings import (
     MONGO_DATABASE,
     VALIDATED_COLLECTION,
     QUARANTINE_COLLECTION,
+    SPARK_MASTER,
 )
 
 # ============================================================
 # QUALITY RULES
 # ============================================================
 
-from quality_rules import apply_all_quality_rules
-
-
-# ============================================================
-# SETTINGS
-# ============================================================
-
-SPARK_MASTER = "spark://172.22.144.1:7077"
+from pipeline.data_quality import apply_all_quality_rules
 
 MILLION_FILE = (
     PROJECT_ROOT
@@ -80,7 +74,10 @@ def is_master_reachable(master_url):
 
 
 def create_spark_session():
-    if is_master_reachable(SPARK_MASTER):
+    if not SPARK_MASTER.startswith("spark://"):
+        master = SPARK_MASTER
+        print(f"Running Spark in local mode: master({master})")
+    elif is_master_reachable(SPARK_MASTER):
         master = SPARK_MASTER
         print(f"Connecting to Spark Standalone Master at {SPARK_MASTER}...")
     else:
@@ -795,6 +792,9 @@ def run_pipeline():
 
         spark.stop()
 
+
+# Alias for external pipeline callers and API service
+run_million_elt_pipeline = run_pipeline
 
 # ============================================================
 # ENTRY POINT

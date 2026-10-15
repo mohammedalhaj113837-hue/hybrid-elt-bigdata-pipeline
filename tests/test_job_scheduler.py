@@ -5,7 +5,7 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.scheduled_jobs import (
+from pipeline.job_scheduler import (
     get_db,
     run_refresh_mv_job,
     run_periodic_audit_job,

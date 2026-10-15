@@ -1,8 +1,9 @@
-pyspark==4.2.0
-pymongo
+pyspark>=3.5.0
+pymongo>=4.6.0
 pandas<3.0
-fastapi
-uvicorn
-apscheduler
-pydantic
-pytest
+fastapi>=0.100.0
+uvicorn>=0.23.0
+apscheduler>=3.10.0
+pydantic>=2.0.0
+pytest>=7.0.0
+httpx>=0.24.0

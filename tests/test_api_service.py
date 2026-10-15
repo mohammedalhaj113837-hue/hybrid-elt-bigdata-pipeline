@@ -6,7 +6,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from fastapi.testclient import TestClient
-from src.api import app
+from pipeline.api_service import app
 
 client = TestClient(app)
 
@@ -69,3 +69,11 @@ def test_api_jobs():
 
     res_invalid = client.post("/jobs/invalid_job/run")
     assert res_invalid.status_code == 404
+
+
+def test_api_ingest():
+    """Test POST /ingest endpoint."""
+    res = client.post("/ingest", json={"file_path": "data/small_sample.csv"})
+    assert res.status_code == 200
+    assert res.json()["status"] == "SUCCESS"
+
